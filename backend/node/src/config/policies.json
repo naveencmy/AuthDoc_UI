@@ -1,0 +1,16 @@
+{
+  "strict": {
+    "required_fields": ["gpa", "cgpa", "result_status"],
+    "rules": [
+      { "type": "range", "field": "gpa", "min": 0, "max": 10 },
+      { "type": "delta", "field": "cgpa", "compare_with": "gpa", "max_diff": 1.0 },
+      { "type": "dependency", "field": "result_status", "depends_on": "subject_grades" }
+    ]
+  },
+  "lenient": {
+    "required_fields": ["gpa", "result_status"],
+    "rules": [
+      { "type": "range", "field": "gpa", "min": 5, "max": 10 }
+    ]
+  }
+}

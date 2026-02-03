@@ -1,0 +1,610 @@
+Directory structure:
+└── naveencmy-authdoc_demo/
+    ├── README.md
+    └── backend/
+        ├── README.md
+        ├── node/
+        │   ├── eng.traineddata
+        │   ├── nodemon.json
+        │   ├── package.json
+        │   ├── src/
+        │   │   ├── app.js
+        │   │   ├── server.js
+        │   │   ├── config/
+        │   │   │   └── policies.json
+        │   │   ├── controllers/
+        │   │   │   └── verify.controller.js
+        │   │   ├── middleware/
+        │   │   │   └── upload.middleware.js
+        │   │   ├── routes/
+        │   │   │   └── verify.routes.js
+        │   │   ├── services/
+        │   │   │   ├── pythonClient.js
+        │   │   │   └── verifier.service.js
+        │   │   ├── store/
+        │   │   │   └── documentStore.js
+        │   │   └── utils/
+        │   │       └── status.util.js
+        │   └── uploads/
+        │       ├── 18afbf2ddf41f3f061bd718ba27e1cab
+        │       ├── 50c69d6ff9899607e7727786862712a1
+        │       ├── 5a2c47194b995d886ae35527c578a9d0
+        │       ├── 758b5994af53e2de041ee8a9490c93b8
+        │       ├── 77143b13d947f5f3b4cf5e2dfe0207fd
+        │       ├── 8d786b9ec1eae25ca920f77c68a72b94
+        │       ├── 992df45cd2966961571d9db8211bebf2
+        │       ├── a1b9a01eb00454ce920e05042b33228b
+        │       ├── b9c15e6d04aeb2fd174b36450613351b
+        │       └── cf8ac4d6efed7903c5ac5286517c028b
+        └── python/
+            ├── extractor.py
+            ├── main.py
+            └── requirements.txt
+
+================================================
+FILE: README.md
+================================================
+# AuthDoc_demo
+
+
+
+================================================
+FILE: backend/README.md
+================================================
+## AuthDoc- Backend File structure of the prototype
+AuthDoc/
+â”œâ”€â”€ backend/
+â”‚   â”œâ”€â”€ node/
+â”‚   â”‚   â”œâ”€â”€ package.json
+â”‚   â”‚   â”œâ”€â”€ nodemon.json
+â”‚   â”‚   â”œâ”€â”€ uploads/
+â”‚   â”‚   â””â”€â”€ src/
+â”‚   â”‚       â”œâ”€â”€ app.js
+â”‚   â”‚       â”œâ”€â”€ server.js
+â”‚   â”‚       â”œâ”€â”€ config/
+â”‚   â”‚       â”‚   â””â”€â”€ policies.json
+â”‚   â”‚       â”œâ”€â”€ middleware/
+â”‚   â”‚       â”‚   â””â”€â”€ upload.middleware.js
+â”‚   â”‚       â”œâ”€â”€ routes/
+â”‚   â”‚       â”‚   â””â”€â”€ verify.routes.js
+â”‚   â”‚       â”œâ”€â”€ controllers/
+â”‚   â”‚       â”‚   â””â”€â”€ verify.controller.js
+â”‚   â”‚       â”œâ”€â”€ services/
+â”‚   â”‚       â”‚   â”œâ”€â”€ pythonClient.js
+â”‚   â”‚       â”‚   â””â”€â”€ verifier.service.js
+â”‚   â”‚       â”œâ”€â”€ store/
+â”‚   â”‚       â”‚   â””â”€â”€ documentStore.js
+â”‚   â”‚       â””â”€â”€ utils/
+â”‚   â”‚           â””â”€â”€ status.util.js
+â”‚   â”‚
+â”‚   â””â”€â”€ python/
+â”‚       â”œâ”€â”€ main.py
+â”‚       â”œâ”€â”€ extractor.py
+â”‚       â””â”€â”€ requirements.txt
+â”‚
+â””â”€â”€ README.md
+
+ # workflow of the AuthDoc:
+ Frontend
+   |
+   |  (file upload)
+   v
+Node.js (Express)  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–º  Python (FastAPI)
+   |                                      |
+   |  verification + policies             |  OCR + extraction
+   |                                      |
+   |â—„â”€â”€â”€â”€â”€â”€â”€â”€ extracted JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€|
+# Service Sturcture of the ML(python-FastAPI):
+ocr_service/
+â”œâ”€â”€ main.py
+â”œâ”€â”€ extractor.py
+â”œâ”€â”€ requirements.txt
+   ## Requirements:
+      fastapi
+      uvicorn
+      paddleocr
+      paddlepaddle
+      python-multipart
+      opencv-python
+
+
+
+================================================
+FILE: backend/node/eng.traineddata
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/nodemon.json
+================================================
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "exec": "node src/server.js"
+}
+
+
+
+================================================
+FILE: backend/node/package.json
+================================================
+{
+  "name": "authdoc-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.4",
+    "express": "^4.18.2",
+    "multer": "1.4.5-lts.1",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^5.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
+
+
+
+================================================
+FILE: backend/node/src/app.js
+================================================
+const express = require("express");
+const verifyRoutes = require("./routes/verify.routes");
+
+const app = express();
+app.use(express.json());
+
+app.use("/api", verifyRoutes);
+
+module.exports = app;
+
+
+
+================================================
+FILE: backend/node/src/server.js
+================================================
+const app = require("./app");
+
+const PORT = 3000;
+
+app.listen(PORT, () => {
+  console.log(`AuthDoc Node backend running on port ${PORT}`);
+});
+
+
+
+================================================
+FILE: backend/node/src/config/policies.json
+================================================
+{
+  "strict": {
+    "required_fields": ["gpa", "cgpa", "result_status"],
+    "rules": [
+      { "type": "range", "field": "gpa", "min": 0, "max": 10 },
+      { "type": "delta", "field": "cgpa", "compare_with": "gpa", "max_diff": 1.0 },
+      { "type": "dependency", "field": "result_status", "depends_on": "subject_grades" }
+    ]
+  },
+  "lenient": {
+    "required_fields": ["gpa", "result_status"],
+    "rules": [
+      { "type": "range", "field": "gpa", "min": 5, "max": 10 }
+    ]
+  }
+}
+
+
+
+================================================
+FILE: backend/node/src/controllers/verify.controller.js
+================================================
+const{randomUUID}=require("crypto");
+const policies = require("../config/policies.json");
+const store = require("../store/documentStore");
+const { sendToOCR } = require("../services/pythonClient");
+const { verify } = require("../services/verifier.service");
+
+/**
+ * Ingest document â†’ OCR â†’ store extracted data
+ */
+exports.ingest = async (req, res) => {
+  const documentId = randomUUID();
+
+  try {
+    const extracted = await sendToOCR(req.file);
+    store.save(documentId, extracted);
+  } catch {
+    store.save(documentId, {});
+  }
+
+  res.json({ document_id: documentId });
+};
+
+/**
+ * Single document verification
+ */
+exports.verifySingle = (req, res) => {
+  const { document_id, policy_id } = req.body;
+
+  const policy = policies[policy_id];
+  if (!policy) {
+    return res.status(400).json({
+      error: `Invalid policy_id: ${policy_id}`
+    });
+  }
+
+  const data = store.get(document_id) || {};
+  const results = verify(data, policy);
+
+  res.json({ document_id, results });
+};
+
+
+/**
+ * Batch verification
+ */
+exports.verifyBatch = (req, res) => {
+  const { document_ids, policy_id } = req.body;
+
+  const policy = policies[policy_id];
+  if (!policy) {
+    return res.status(400).json({
+      error: `Invalid policy_id: ${policy_id}`
+    });
+  }
+
+  const candidates = document_ids.map((id) => {
+    const data = store.get(id) || {};
+    const results = verify(data, policy);
+
+    const fields = {};
+    let overall = "VERIFIED";
+
+    for (const f of policy.required_fields) {
+      fields[f] = results[f]?.status || "MISSING";
+      if (fields[f] === "MISSING") overall = "MISSING";
+      else if (fields[f] === "FLAGGED" && overall !== "MISSING")
+        overall = "FLAGGED";
+    }
+
+    return { document_id: id, overall_status: overall, fields };
+  });
+
+  res.json({ candidates });
+};
+
+
+/*
+This prototype processes documents synchronously and can be extended
+to async batch pipelines and persistent storage in production.
+*/
+
+
+
+================================================
+FILE: backend/node/src/middleware/upload.middleware.js
+================================================
+const multer = require("multer");
+
+/**
+ * Upload middleware
+ * Handles file ingestion only
+ */
+const upload = multer({
+  dest: "uploads/"
+});
+
+module.exports = upload;
+
+
+
+================================================
+FILE: backend/node/src/routes/verify.routes.js
+================================================
+const express = require("express");
+const upload = require("../middleware/upload.middleware");
+const controller = require("../controllers/verify.controller");
+
+const router = express.Router();
+
+router.post("/ingest", upload.single("file"), controller.ingest);
+router.post("/verify", controller.verifySingle);
+router.post("/verify/batch", controller.verifyBatch);
+
+module.exports = router;
+
+
+
+================================================
+FILE: backend/node/src/services/pythonClient.js
+================================================
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
+const path = require("path");
+
+const OCR_URL = "http://127.0.0.1:8000/extract";
+
+async function sendToOCR(file) {
+  const form = new FormData();
+
+  // IMPORTANT: preserve original filename & extension
+  form.append(
+    "file",
+    fs.createReadStream(file.path),
+    {
+      filename: file.originalname
+    }
+  );
+
+  const response = await axios.post(OCR_URL, form, {
+    headers: form.getHeaders(),
+    timeout: 20000
+  });
+
+  return response.data;
+}
+
+module.exports = { sendToOCR };
+
+
+
+================================================
+FILE: backend/node/src/services/verifier.service.js
+================================================
+/**
+ * Generic rule-based verification engine
+ */
+exports.verify = (data, policy) => {
+  const results = {};
+
+  const set = (field, status, reason) => {
+    if (results[field]?.status === "MISSING" && status === "VERIFIED") return;
+    results[field] = {
+      value: data[field] ?? null,
+      status,
+      reason
+    };
+  };
+
+  for (const rule of policy.rules) {
+    if (rule.type === "range") {
+      const v = data[rule.field];
+      if (v == null || Number.isNaN(v))
+        set(rule.field, "MISSING", "Value missing");
+      else if (v < rule.min || v > rule.max)
+        set(rule.field, "FLAGGED", "Out of allowed range");
+      else set(rule.field, "VERIFIED", "Within allowed range");
+    }
+
+    if (rule.type === "delta") {
+      const a = data[rule.field];
+      const b = data[rule.compare_with];
+      if (a == null || b == null)
+        set(rule.field, "MISSING", "Comparison data missing");
+      else if (Math.abs(a - b) > rule.max_diff)
+        set(rule.field, "FLAGGED", "Deviation exceeds threshold");
+      else set(rule.field, "VERIFIED", "Difference acceptable");
+    }
+
+    if (rule.type === "dependency") {
+      const grades = data[rule.depends_on] || [];
+      const hasFail = grades.some(g => g.grade !== "PASS");
+      if (hasFail && data[rule.field] === "PASS")
+        set(rule.field, "FLAGGED", "Result conflicts with failed subject");
+      else set(rule.field, "VERIFIED", "Dependency satisfied");
+    }
+  }
+
+  return results;
+};
+
+
+
+================================================
+FILE: backend/node/src/store/documentStore.js
+================================================
+const store = new Map();
+
+/**
+ * In-memory document store
+ * No DB by design (prototype)
+ */
+module.exports = {
+  save(id, data) {
+    store.set(id, data);
+  },
+  get(id) {
+    return store.get(id);
+  }
+};
+
+
+
+================================================
+FILE: backend/node/src/utils/status.util.js
+================================================
+exports.matchValue = (text, regex) => {
+  const match = text.match(regex);
+  return match ? match[1].trim() : null;
+};
+
+
+
+================================================
+FILE: backend/node/uploads/18afbf2ddf41f3f061bd718ba27e1cab
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/50c69d6ff9899607e7727786862712a1
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/5a2c47194b995d886ae35527c578a9d0
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/758b5994af53e2de041ee8a9490c93b8
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/77143b13d947f5f3b4cf5e2dfe0207fd
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/8d786b9ec1eae25ca920f77c68a72b94
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/992df45cd2966961571d9db8211bebf2
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/a1b9a01eb00454ce920e05042b33228b
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/b9c15e6d04aeb2fd174b36450613351b
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/node/uploads/cf8ac4d6efed7903c5ac5286517c028b
+================================================
+[Binary file]
+
+
+================================================
+FILE: backend/python/extractor.py
+================================================
+from paddleocr import PaddleOCR
+import re
+
+ocr = PaddleOCR(use_angle_cls=True, lang="en")
+
+def normalize(text: str):
+    text = text.replace("(", " ").replace(")", " ")
+    return re.sub(r"\s+", " ", text)
+
+def extract_fields(text: str):
+    text = normalize(text)
+
+    def find(pattern):
+        m = re.search(pattern, text, re.I)
+        return m.group(1).strip() if m else None
+
+    subjects_raw = re.findall(
+        r"([A-Z][A-Z &]+)\s+\d+\s+\d+\s+([A-Z+]+)",
+        text
+    )
+
+    subject_grades = (
+        [{"subject": s.strip(), "grade": g} for s, g in subjects_raw]
+        if subjects_raw else None
+    )
+
+    result_status = None
+    if subject_grades:
+        result_status = "PASS"
+        for s in subject_grades:
+            if s["grade"] in ["RA", "FAIL"]:
+                result_status = "FAIL"
+                break
+
+    gpa = find(r"GPA[^0-9]*([\d]+\.\d+)")
+    cgpa = find(r"CGPA[^0-9]*([\d]+\.\d+)")
+
+    return {
+        "student_name": find(r"Name\s+of\s+the\s+Candidate\s+([A-Z ]+)"),
+        "register_number": find(r"Register\s*No\s*([A-Z0-9]+)"),
+        "programme_or_branch": find(r"Programme\s*/\s*Branch\s+([A-Z .]+)"),
+        "semester": find(r"(FIRST|SECOND|THIRD|FOURTH)\s+SEMESTER"),
+        "gpa": float(gpa) if gpa else None,
+        "cgpa": float(cgpa) if cgpa else None,
+        "result_status": result_status,
+        "subject_grades": subject_grades
+    }
+
+def run_ocr(path: str):
+    print(">>> OCR FUNCTION ENTERED <<<", path)
+
+    result = ocr.ocr(path)
+    print("RAW OCR RESULT:", result)
+
+    text = "\n".join([line[1][0] for page in result for line in page])
+
+    print("==== OCR RAW TEXT START ====")
+    print(text)
+    print("==== OCR RAW TEXT END ====")
+
+    return extract_fields(text)
+
+
+
+================================================
+FILE: backend/python/main.py
+================================================
+from fastapi import FastAPI, UploadFile, File
+import shutil, uuid
+from extractor import run_ocr
+
+app = FastAPI()
+
+@app.post("/extract")
+async def extract(file: UploadFile = File(...)):
+    temp = f"/tmp/{uuid.uuid4()}_{file.filename}"
+
+    with open(temp, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    try:
+        return run_ocr(temp)
+    except:
+        return {
+            "student_name": None,
+            "register_number": None,
+            "programme_or_branch": None,
+            "semester": None,
+            "gpa": None,
+            "cgpa": None,
+            "result_status": None,
+            "subject_grades": None
+        }
+    finally:
+        file.file.close()
+
+
+================================================
+FILE: backend/python/requirements.txt
+================================================
+fastapi
+uvicorn
+paddleocr
+paddlepaddle
+python-multipart
+opencv-python
+
+

@@ -1,0 +1,103 @@
+############################
+# General
+############################
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.log
+logs/
+coverage/
+
+############################
+# Node.js
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+
+############################
+# Nodemon
+############################
+.nodemon.json
+
+############################
+# Python
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+
+############################
+# Python Virtual Environments
+############################
+venv/
+.venv/
+env/
+ENV/
+
+############################
+# Python Build Artifacts
+############################
+build/
+dist/
+
+############################
+# OCR / Temp Files
+############################
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.bmp
+/tmp/
+temp/
+uploads/
+
+############################
+# OCR Models / Large Assets
+############################
+*.traineddata
+*.onnx
+*.pt
+*.bin
+
+############################
+# OS Temp Paths (Windows/Linux)
+############################
+C:/Users/*/AppData/Local/Temp/*
+/tmp/*
+/var/tmp/*
+
+############################
+# IDE / Editor
+############################
+.vscode/
+.idea/
+*.swp
+*.swo
+
+############################
+# Git
+############################
+.gitconfig
+.gitignore.bak
+
+############################
+# Misc
+############################
+*.zip
+*.tar
+*.tar.gz
+*.7z
+tesseract/
