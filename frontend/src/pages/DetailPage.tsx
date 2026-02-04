@@ -29,7 +29,7 @@ interface VerifyResponse {
 /* ------------------------------------------------------------------ */
 
 const DetailPage = () => {
-  const { id: documentId } = useParams<{ id: string }>();
+  const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
 
   const [data, setData] = useState<VerifyResponse | null>(null);
@@ -41,7 +41,11 @@ const DetailPage = () => {
   /* ---------------------------------------------------------------- */
 
   useEffect(() => {
-    if (!documentId) return;
+    if (!documentId) {
+      setError('Invalid document ID');
+      setLoading(false);
+      return;
+    }
 
     const fetchVerification = async () => {
       try {

@@ -1,92 +1,60 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { StatsCard } from '@/components/StatsCard';
-
+import { StatusBadge } from '@/components/StatusBadge';
+import { batchVerifyDocuments } from '@/lib/api';
 import type { VerificationStatus } from '@/lib/api';
 
-/* ------------------------------------------------------------------ */
-/* Types – guaranteed by backend                                      */
-/* ------------------------------------------------------------------ */
-
-interface FieldResult {
-  value: number | null;
-  status: VerificationStatus;
-  reason: string;
-}
-
-interface VerifyResponse {
+interface BatchCandidate {
   document_id: string;
-  results: Record<string, FieldResult>;
+  overall_status: VerificationStatus;
+  fields: Record<string, VerificationStatus>;
 }
 
-/* ------------------------------------------------------------------ */
-/* Component                                                          */
-/* ------------------------------------------------------------------ */
+const ResultsPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const DetailPage = () => {
-  const { documentId } = useParams<{ documentId: string }>();
+  const documentIds: string[] = location.state?.documentIds ?? [];
 
-  const [data, setData] = useState<VerifyResponse | null>(null);
+  const [candidates, setCandidates] = useState<BatchCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!documentId) return;
+    if (documentIds.length === 0) {
+      setError('No documents to verify');
+      setLoading(false);
+      return;
+    }
 
-    const fetchVerification = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch('/api/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            document_id: documentId,
-            policy_id: 'strict',
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error('Verification failed');
-        }
-
-        const json: VerifyResponse = await res.json();
-        setData(json);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVerification();
-  }, [documentId]);
+    batchVerifyDocuments(documentIds, 'strict')
+      .then(res => setCandidates(res.candidates))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [documentIds]);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <>
         <Header />
-        <main className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground">Loading verification…</p>
-        </main>
+        <main className="p-8 text-center">Verifying documents…</main>
         <Footer />
-      </div>
+      </>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <>
         <Header />
-        <main className="flex flex-1 items-center justify-center">
-          <p className="text-destructive">{error ?? 'No data found'}</p>
+        <main className="p-8 text-center text-destructive">
+          {error}
         </main>
         <Footer />
-      </div>
+      </>
     );
   }
 
@@ -95,21 +63,38 @@ const DetailPage = () => {
       <Header />
 
       <main className="flex-1 py-12">
-        <div className="container max-w-4xl">
+        <div className="container max-w-5xl">
           <h1 className="mb-6 text-2xl font-bold">
-            Verification Details
+            Batch Verification Results
           </h1>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {Object.entries(data.results).map(([field, result]) => (
-              <StatsCard
-                key={field}
-                label={field.toUpperCase()}
-                value={result.value ?? '—'}
-                status={result.status}
-                reason={result.reason}
-              />
-            ))}
+          <div className="overflow-hidden rounded-xl border bg-card">
+            <table className="w-full">
+              <thead className="bg-secondary/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm">Document ID</th>
+                  <th className="px-6 py-3 text-left text-sm">Overall Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {candidates.map(candidate => (
+                  <tr
+                    key={candidate.document_id}
+                    onClick={() =>
+                      navigate(`/results/${candidate.document_id}`)
+                    }
+                    className="cursor-pointer border-b hover:bg-secondary/30"
+                  >
+                    <td className="px-6 py-4 font-mono text-sm">
+                      {candidate.document_id}
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={candidate.overall_status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </main>
@@ -119,4 +104,4 @@ const DetailPage = () => {
   );
 };
 
-export default DetailPage;
+export default ResultsPage;

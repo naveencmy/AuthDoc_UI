@@ -1,36 +1,62 @@
 from fastapi import FastAPI, UploadFile, File
+from typing import List
 import tempfile
 import shutil
+import os
+
 from extractor import run_ocr
 
-app = FastAPI()
+app = FastAPI(title="AuthDoc OCR Service")
+
+
+def save_temp_file(upload: UploadFile) -> str:
+    """
+    Save uploaded file to a unique temp path and return path.
+    """
+    suffix = os.path.splitext(upload.filename)[-1]
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(upload.file, tmp)
+        return tmp.name
 
 
 @app.post("/extract")
-async def extract_document(file: UploadFile = File(...)):
+async def extract_single(file: UploadFile = File(...)):
     """
-    Receives a document, runs OCR, returns extracted fields.
+    OCR a SINGLE document.
+    Used by Node.js ingestion.
     """
-
-    # Save file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=file.filename) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        temp_path = tmp.name
+    path = save_temp_file(file)
 
     try:
-        extracted_data = run_ocr(temp_path)
-    except Exception as e:
-        # OCR failure → return all fields as null (Node will mark MISSING)
-        print("OCR ERROR:", e)
-        extracted_data = {
-            "student_name": None,
-            "register_number": None,
-            "programme_or_branch": None,
-            "semester": None,
-            "gpa": None,
-            "cgpa": None,
-            "result_status": None,
-            "subject_grades": None
-        }
+        extracted = run_ocr(path)
+    finally:
+        os.remove(path)
 
-    return extracted_data
+    return extracted
+
+
+@app.post("/extract/batch")
+async def extract_batch(files: List[UploadFile] = File(...)):
+    """
+    OCR MULTIPLE documents safely.
+    Each document is processed independently.
+    """
+    results = []
+
+    for file in files:
+        path = save_temp_file(file)
+
+        try:
+            extracted = run_ocr(path)
+        finally:
+            os.remove(path)
+
+        results.append({
+            "filename": file.filename,
+            "extracted": extracted
+        })
+
+    return {
+        "count": len(results),
+        "documents": results
+    }

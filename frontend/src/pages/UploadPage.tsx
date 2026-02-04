@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ingestDocument } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { FileUploadZone } from '@/components/FileUploadZone';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+
+const API_BASE_URL = 'http://localhost:3000/api';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -14,10 +15,6 @@ const UploadPage = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  /* ---------------------------------------------------------------- */
-  /* Handlers                                                         */
-  /* ---------------------------------------------------------------- */
 
   const handleFilesSelected = (selectedFiles: File[]) => {
     setFiles(selectedFiles);
@@ -31,28 +28,59 @@ const UploadPage = () => {
     setError(null);
 
     try {
-      const documentIds: string[] = [];
+      let documentIds: string[] = [];
 
-      // Upload files ONE BY ONE (contract-correct)
-      for (const file of files) {
-        const { document_id } = await ingestDocument(file);
-        documentIds.push(document_id);
+      // ─────────────────────────────────────────────
+      // SINGLE FILE → /api/ingest
+      // ─────────────────────────────────────────────
+      if (files.length === 1) {
+        const formData = new FormData();
+        formData.append('file', files[0]);
+
+        const res = await fetch(`${API_BASE_URL}/ingest`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+
+        const data = await res.json();
+        documentIds = [data.document_id];
       }
 
-      // Navigate to results with collected document IDs
+      // ─────────────────────────────────────────────
+      // MULTIPLE FILES → /api/ingest/batch
+      // ─────────────────────────────────────────────
+      else {
+        const formData = new FormData();
+        files.forEach(file => {
+          formData.append('files', file);
+        });
+
+        const res = await fetch(`${API_BASE_URL}/ingest/batch`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error('Batch upload failed');
+
+        const data = await res.json();
+        documentIds = data.documents.map(
+          (d: { document_id: string }) => d.document_id
+        );
+      }
+
+      // Navigate to batch results
       navigate('/results', {
         state: { documentIds },
       });
+
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setIsUploading(false);
     }
   };
-
-  /* ---------------------------------------------------------------- */
-  /* Render                                                           */
-  /* ---------------------------------------------------------------- */
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -61,7 +89,6 @@ const UploadPage = () => {
       <main className="flex-1 py-12">
         <div className="container max-w-3xl">
 
-          {/* Header */}
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold">
               Batch Upload Academic Documents
@@ -71,7 +98,6 @@ const UploadPage = () => {
             </p>
           </div>
 
-          {/* Upload Card */}
           <div className="mb-8 rounded-xl border bg-card p-6 lg:p-8">
             <FileUploadZone onFilesSelected={handleFilesSelected} />
 
@@ -102,7 +128,6 @@ const UploadPage = () => {
             )}
           </div>
 
-          {/* Info */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
             <h3 className="mb-4 font-semibold">
               What happens next?

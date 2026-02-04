@@ -3,21 +3,15 @@ const policies = require("../config/policies.json");
 const store = require("../store/documentStore");
 const { sendToOCR } = require("../services/pythonClient");
 const { verify } = require("../services/verifier.service");
-const {
-  mapSingleVerification
-} = require("../utils/responseMapper");
+const { mapSingleVerification } = require("../utils/responseMapper");
 
-/**
- * Ingest document → OCR → store extracted data
- */
+// Single ingest
 exports.ingest = async (req, res) => {
-  const documentId = randomUUID();
-
   if (!req.file) {
-    return res.status(400).json({
-      error: "File missing. Use multipart/form-data with key 'file'"
-    });
+    return res.status(400).json({ error: "File is required" });
   }
+
+  const documentId = randomUUID();
 
   try {
     const extracted = await sendToOCR(req.file);
@@ -30,47 +24,61 @@ exports.ingest = async (req, res) => {
   res.status(201).json({ document_id: documentId });
 };
 
+// Batch ingest
+exports.ingestBatch = async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
 
-/**
- * Single document verification (CLEAN RESPONSE)
- */
+  const documents = [];
+
+  for (const file of req.files) {
+    const documentId = randomUUID();
+
+    try {
+      const extracted = await sendToOCR(file);
+      store.save(documentId, extracted);
+    } catch (err) {
+      console.error("OCR failed:", err.message);
+      store.save(documentId, {});
+    }
+
+    documents.push({ document_id: documentId });
+  }
+
+  res.status(201).json({
+    count: documents.length,
+    documents
+  });
+};
+
+// Verify single
 exports.verifySingle = (req, res) => {
   const { document_id, policy_id } = req.body;
 
   const policy = policies[policy_id];
   if (!policy) {
-    return res.status(400).json({
-      error: `Invalid policy_id: ${policy_id}`
-    });
+    return res.status(400).json({ error: "Invalid policy_id" });
   }
 
   const data = store.get(document_id);
   if (!data) {
-    return res.status(404).json({
-      error: `Document not found: ${document_id}`
-    });
+    return res.status(404).json({ error: "Document not found" });
   }
 
-  // Internal full verification
   const results = verify(data, policy);
-
-  // 🔥 Production response
   const response = mapSingleVerification(document_id, results);
 
   res.json(response);
 };
 
-/**
- * Batch verification (SUMMARY ONLY)
- */
+// Verify batch
 exports.verifyBatch = (req, res) => {
   const { document_ids, policy_id } = req.body;
 
   const policy = policies[policy_id];
   if (!policy) {
-    return res.status(400).json({
-      error: `Invalid policy_id: ${policy_id}`
-    });
+    return res.status(400).json({ error: "Invalid policy_id" });
   }
 
   const candidates = document_ids.map((id) => {
@@ -90,11 +98,7 @@ exports.verifyBatch = (req, res) => {
       }
     }
 
-    return {
-      document_id: id,
-      overall_status,
-      fields
-    };
+    return { document_id: id, overall_status, fields };
   });
 
   res.json({ candidates });

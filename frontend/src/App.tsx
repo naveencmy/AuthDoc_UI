@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Index from "./pages/Index";
 import UploadPage from "./pages/UploadPage";
 import ResultsPage from "./pages/ResultsPage";
@@ -20,9 +21,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/upload" element={<UploadPage />} />
+
+          {/* Batch results */}
           <Route path="/results" element={<ResultsPage />} />
-          <Route path="/detail/:id" element={<DetailPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Single document detail */}
+          <Route path="/results/:documentId" element={<DetailPage />} />
+
+          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

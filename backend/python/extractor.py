@@ -3,10 +3,11 @@ from PIL import Image, ImageEnhance
 import cv2
 import numpy as np
 import re
-
+# ⚠️ Make this configurable in production
 pytesseract.pytesseract.tesseract_cmd = r"D:\products\AuthDoc\tesseract\tesseract.exe"
-
-
+# -----------------------------
+# Image preprocessing
+# -----------------------------
 def preprocess_image(path: str):
     img = Image.open(path).convert("L")
 
@@ -16,7 +17,6 @@ def preprocess_image(path: str):
     img = np.array(img)
 
     img = cv2.fastNlMeansDenoising(img, None, 20, 7, 21)
-
     return img
 
 
@@ -27,11 +27,16 @@ def validate_image(img):
     return True, None
 
 
+# -----------------------------
+# Text extraction helpers
+# -----------------------------
 def normalize(text: str):
     return re.sub(r"\s+", " ", text.replace("(", " ").replace(")", " "))
 
+
 def to_float(value: str):
     return float(value.replace(",", "."))
+
 
 def extract_fields(text: str):
     text = normalize(text)
@@ -43,37 +48,36 @@ def extract_fields(text: str):
     gpa = re.search(
         r"(GPA|GEA|GRADE POINT AVERAGE|GRADE POINT AVORAG[E|O])[^0-9]{0,20}([\d]+[.,][\d]+)",
         text,
-        re.I
-        )
+        re.I,
+    )
 
     cgpa = re.search(
-    r"(CGPA|COPA|CUMULATIVE GRADE POINT AVERAGE|CUMULATIVE GRADE POINT AVORAG[E|O])[^0-9]{0,20}([\d]+[.,][\d]+)",
-    text,re.I
+        r"(CGPA|COPA|CUMULATIVE GRADE POINT AVERAGE|CUMULATIVE GRADE POINT AVORAG[E|O])[^0-9]{0,20}([\d]+[.][\d]+)",
+        text,
+        re.I,
     )
+
     subjects = re.findall(
-    r"\b([A-Z]{2,4}\d{2,4})\s+[A-Z &]+\s+\d+\s+\d+\s+([A-Z+])",
-    text
-)
+        r"\b([A-Z]{2,4}\d{2,4})\s+[A-Z &]+\s+\d+\s+\d+\s+([A-Z+])",
+        text,
+    )
 
-    subject_grades = [
-    {"code": c, "grade": g}
-    for c, g in subjects
-]
-
-
+    subject_grades = [{"code": c, "grade": g} for c, g in subjects]
 
     return {
         "student_name": find(r"NAME\s+OF\s+THE\s+CANDI[A-Z]{2,4}\s+([A-Z ]+)"),
         "register_number": find(r"REGISTER\s*NO\s*[:\-]?\s*([A-Z0-9]+)"),
         "programme_or_branch": find(r"PROGRAMME\s*&?\s*BRANCH\s*[:\-]?\s*([A-Z .]+)"),
         "semester": find(r"(FIRST|SECOND|THIRD|FOURTH)\s+SEMESTER"),
-        "subject_grades": subject_grades if subject_grades else [],
+        "subject_grades": subject_grades,
         "gpa": to_float(gpa.group(2)) if gpa else None,
         "cgpa": to_float(cgpa.group(2)) if cgpa else None,
-
     }
 
 
+# -----------------------------
+# OCR ENTRY POINT (PER DOCUMENT)
+# -----------------------------
 def run_ocr(path: str):
     print(">>> OCR FUNCTION ENTERED <<<", path)
 
@@ -82,7 +86,15 @@ def run_ocr(path: str):
 
         ok, err = validate_image(img)
         if not ok:
-            return {"error": err}
+            return {
+                "student_name": None,
+                "register_number": None,
+                "programme_or_branch": None,
+                "semester": None,
+                "gpa": None,
+                "cgpa": None,
+                "subject_grades": [],
+            }
 
         text = pytesseract.image_to_string(
             img,
@@ -98,4 +110,12 @@ def run_ocr(path: str):
 
     except Exception as e:
         print("OCR ERROR:", e)
-        return {"error": "OCR failed"}
+        return {
+            "student_name": None,
+            "register_number": None,
+            "programme_or_branch": None,
+            "semester": None,
+            "gpa": None,
+            "cgpa": None,
+            "subject_grades": [],
+        }

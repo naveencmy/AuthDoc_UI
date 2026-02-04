@@ -1,12 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middleware/upload.middleware");
+
+const {
+  singleUpload,
+  batchUpload
+} = require("../middleware/upload.middleware");
+
 const controller = require("../controllers/verify.controller");
 
+// Single document ingest
 router.post(
   "/ingest",
-  upload.single("file"),
+  singleUpload,
   controller.ingest
+);
+
+// Batch document ingest
+router.post(
+  "/ingest/batch",
+  batchUpload,
+  controller.ingestBatch
 );
 
 router.post("/verify", controller.verifySingle);
