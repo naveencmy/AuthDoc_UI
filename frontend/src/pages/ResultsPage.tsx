@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -15,9 +15,10 @@ interface BatchCandidate {
 
 const ResultsPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const documentIds: string[] = location.state?.documentIds ?? [];
+  // 🔑 Persistent batch IDs (CRITICAL FIX)
+  const stored = sessionStorage.getItem('authdoc:documentIds');
+  const documentIds: string[] = stored ? JSON.parse(stored) : [];
 
   const [candidates, setCandidates] = useState<BatchCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,13 +35,15 @@ const ResultsPage = () => {
       .then(res => setCandidates(res.candidates))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [documentIds]);
+  }, []);
 
   if (loading) {
     return (
       <>
         <Header />
-        <main className="p-8 text-center">Verifying documents…</main>
+        <main className="p-8 text-center">
+          Verifying documents…
+        </main>
         <Footer />
       </>
     );
@@ -72,8 +75,12 @@ const ResultsPage = () => {
             <table className="w-full">
               <thead className="bg-secondary/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm">Document ID</th>
-                  <th className="px-6 py-3 text-left text-sm">Overall Status</th>
+                  <th className="px-6 py-3 text-left text-sm">
+                    Document
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm">
+                    Overall Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -86,7 +93,8 @@ const ResultsPage = () => {
                     className="cursor-pointer border-b hover:bg-secondary/30"
                   >
                     <td className="px-6 py-4 font-mono text-sm">
-                      {candidate.document_id}
+                      {/* UX-friendly display */}
+                      {candidate.document_id.slice(0, 8)}…
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={candidate.overall_status} />

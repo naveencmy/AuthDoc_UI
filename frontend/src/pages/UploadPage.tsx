@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
+import { ingestDocument } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { FileUploadZone } from '@/components/FileUploadZone';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:3000/api';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -28,53 +27,22 @@ const UploadPage = () => {
     setError(null);
 
     try {
-      let documentIds: string[] = [];
+      const documentIds: string[] = [];
 
-      // ─────────────────────────────────────────────
-      // SINGLE FILE → /api/ingest
-      // ─────────────────────────────────────────────
-      if (files.length === 1) {
-        const formData = new FormData();
-        formData.append('file', files[0]);
-
-        const res = await fetch(`${API_BASE_URL}/ingest`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error('Upload failed');
-
-        const data = await res.json();
-        documentIds = [data.document_id];
+      // Upload files one-by-one (contract-safe)
+      for (const file of files) {
+        const { document_id } = await ingestDocument(file);
+        documentIds.push(document_id);
       }
 
-      // ─────────────────────────────────────────────
-      // MULTIPLE FILES → /api/ingest/batch
-      // ─────────────────────────────────────────────
-      else {
-        const formData = new FormData();
-        files.forEach(file => {
-          formData.append('files', file);
-        });
+      // 🔑 Persist batch IDs (CRITICAL FIX)
+      sessionStorage.setItem(
+        'authdoc:documentIds',
+        JSON.stringify(documentIds)
+      );
 
-        const res = await fetch(`${API_BASE_URL}/ingest/batch`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error('Batch upload failed');
-
-        const data = await res.json();
-        documentIds = data.documents.map(
-          (d: { document_id: string }) => d.document_id
-        );
-      }
-
-      // Navigate to batch results
-      navigate('/results', {
-        state: { documentIds },
-      });
-
+      // Navigate WITHOUT state
+      navigate('/results');
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -127,19 +95,6 @@ const UploadPage = () => {
               </p>
             )}
           </div>
-
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
-            <h3 className="mb-4 font-semibold">
-              What happens next?
-            </h3>
-            <ol className="space-y-2 text-sm text-muted-foreground">
-              <li>1. Files are uploaded and assigned document IDs</li>
-              <li>2. AI extracts and verifies academic data</li>
-              <li>3. Batch summary table is generated</li>
-              <li>4. You can drill into any document for details</li>
-            </ol>
-          </div>
-
         </div>
       </main>
 

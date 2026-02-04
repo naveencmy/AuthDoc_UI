@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 
+import { verifyDocument } from '@/lib/api';
 import type { VerificationStatus } from '@/lib/api';
 
 /* ------------------------------------------------------------------ */
@@ -47,34 +48,13 @@ const DetailPage = () => {
       return;
     }
 
-    const fetchVerification = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    setLoading(true);
+    setError(null);
 
-        const res = await fetch('/api/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            document_id: documentId,
-            policy_id: 'strict',
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error('Verification failed');
-        }
-
-        const json: VerifyResponse = await res.json();
-        setData(json);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVerification();
+    verifyDocument(documentId, 'strict')
+      .then(setData)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, [documentId]);
 
   /* ---------------------------------------------------------------- */
@@ -86,7 +66,7 @@ const DetailPage = () => {
       <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground">Loading verification…</p>
+          <p className="text-muted-foreground">Loading verification...</p>
         </main>
         <Footer />
       </div>
