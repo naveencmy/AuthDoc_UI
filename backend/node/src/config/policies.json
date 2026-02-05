@@ -1,16 +1,34 @@
 {
-  "strict": {
-    "required_fields": ["gpa", "cgpa", "result_status"],
-    "rules": [
-      { "type": "range", "field": "gpa", "min": 0, "max": 10 },
-      { "type": "delta", "field": "cgpa", "compare_with": "gpa", "max_diff": 1.0 },
-      { "type": "dependency", "field": "result_status", "depends_on": "subject_grades" }
-    ]
+  "2403732210421149": {
+    "student_name": "PRITHIV KRISHNA G",
+    "subjects": {
+      "22CSC02": "B",
+      "22CSC03": "C",
+      "22CSC04": "B",
+      "22GYA02": "B",
+      "22MYB03": "B+",
+      "22CSP02": "U",
+      "22CSP03": "A+",
+      "22MEP01": "A",
+      "22MAN02R": "SF",
+      "22MAN05": "G",
+      "22EYA02": "A"
+    }
   },
-  "lenient": {
-    "required_fields": ["gpa", "result_status"],
-    "rules": [
-      { "type": "range", "field": "gpa", "min": 5, "max": 10 }
-    ]
+
+  "2403732210422160": {
+    "student_name": "RATHIPRIYA S",
+    "subjects": {
+      "22CSC01": "A",
+      "22ECC01": "A",
+      "22GYA01": "A",
+      "22MYB01": "A",
+      "22PYB01": "O",
+      "22CSP01": "O",
+      "22ECP01": "A+",
+      "22PYP01": "A+",
+      "22MAN03": "G",
+      "22EYA01": "A"
+    }
   }
 }

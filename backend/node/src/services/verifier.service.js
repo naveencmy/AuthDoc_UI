@@ -1,59 +1,52 @@
-exports.verify = (data, policy) => {
-  const results = {};
+const db = require("../config/policies.json");
 
-  const set = (field, status, reason) => {
-    if (results[field]?.status === "MISSING" && status === "VERIFIED") return;
+exports.verify = (data) => {
+  const { umis_no, subject_grades } = data;
 
-    results[field] = {
-      value: data[field] ?? null,
-      status,
-      reason
+  if (!umis_no) {
+    return {
+      overall_status: "MISSING",
+      reason: "UMIS number not detected from document"
     };
-  };
+  }
 
-  for (const rule of policy.rules) {
+  const record = db[umis_no];
 
-    if (rule.type === "range") {
-      const v = data[rule.field];
+  if (!record) {
+    return {
+      overall_status: "FLAGGED",
+      reason: "UMIS number not found in institutional database"
+    };
+  }
 
-      if (v === "WITHHELD") {
-        set(rule.field, "MISSING", "Value withheld by institution");
-      } else if (v == null || Number.isNaN(v)) {
-        set(rule.field, "MISSING", "Value missing");
-      } else if (v < rule.min || v > rule.max) {
-        set(rule.field, "FLAGGED", "Out of allowed range");
-      } else {
-        set(rule.field, "VERIFIED", "Within allowed range");
-      }
-    }
+  const mismatches = [];
 
-    if (rule.type === "delta") {
-      const a = data[rule.field];
-      const b = data[rule.compare_with];
+  for (const sub of subject_grades) {
+    const expected = record.subjects[sub.code];
 
-      if (a === "WITHHELD") {
-        set(rule.field, "MISSING", "CGPA withheld due to arrears");
-      } else if (a == null || b == null) {
-        set(rule.field, "MISSING", "Comparison data missing");
-      } else if (Math.abs(a - b) > rule.max_diff) {
-        set(rule.field, "FLAGGED", "Deviation exceeds threshold");
-      } else {
-        set(rule.field, "VERIFIED", "Difference acceptable");
-      }
-    }
-    if (rule.type === "dependency") {
-      const grades = data[rule.depends_on] || [];
-
-      const hasFail = grades.some(g =>
-        ["U", "AB", "WD", "RA", "FAIL"].includes(g.grade)
-      );
-
-      if (hasFail) {
-        set(rule.field, "FLAGGED", "Arrear subjects detected");
-      } else {
-        set(rule.field, "VERIFIED", "All subjects cleared");
-      }
+    if (!expected) {
+      mismatches.push({
+        subject: sub.code,
+        issue: "Subject not present in DB"
+      });
+    } else if (expected !== sub.grade) {
+      mismatches.push({
+        subject: sub.code,
+        expected,
+        found: sub.grade
+      });
     }
   }
-  return results;
+
+  if (mismatches.length > 0) {
+    return {
+      overall_status: "FLAGGED",
+      mismatches
+    };
+  }
+
+  return {
+    overall_status: "VERIFIED",
+    reason: "All subjects match institutional records"
+  };
 };
