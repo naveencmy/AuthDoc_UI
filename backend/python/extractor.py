@@ -45,20 +45,38 @@ def extract_fields(text: str):
         m = re.search(pattern, text, re.I)
         return m.group(1).strip() if m else None
 
-    gpa = re.search(
-        r"(GPA|GEA|GRADE POINT AVERAGE|GRADE POINT AVORAG[E|O])[^0-9]{0,20}([\d]+[.,][\d]+)",
+    # GPA
+    gpa_match = re.search(
+        r"(GPA|GRADE POINT AVERAGE)[^0-9]{0,20}([\d]+[.,][\d]+)",
         text,
         re.I,
     )
 
-    cgpa = re.search(
-        r"(CGPA|COPA|CUMULATIVE GRADE POINT AVERAGE|CUMULATIVE GRADE POINT AVORAG[E|O])[^0-9]{0,20}([\d]+[.][\d]+)",
+    gpa = to_float(gpa_match.group(2)) if gpa_match else None
+
+    # CGPA (numeric)
+    cgpa_match = re.search(
+        r"(CGPA|CUMULATIVE GRADE POINT AVERAGE)[^0-9]{0,20}([\d]+[.,][\d]+)",
         text,
         re.I,
     )
+
+    # CGPA withheld (explicit but empty)
+    cgpa_withheld = re.search(
+        r"(CGPA|CUMULATIVE GRADE POINT AVERAGE)\s*=\s*$",
+        text,
+        re.I,
+    )
+
+    if cgpa_match:
+        cgpa = to_float(cgpa_match.group(2))
+    elif cgpa_withheld:
+        cgpa = "WITHHELD"
+    else:
+        cgpa = None
 
     subjects = re.findall(
-        r"\b([A-Z]{2,4}\d{2,4})\s+[A-Z &]+\s+\d+\s+\d+\s+([A-Z+])",
+        r"\b([A-Z]{2,4}\d{2,4})\s+[A-Z &]+.*?\s+([A-Z]{1,2})",
         text,
     )
 
@@ -70,9 +88,10 @@ def extract_fields(text: str):
         "programme_or_branch": find(r"PROGRAMME\s*&?\s*BRANCH\s*[:\-]?\s*([A-Z .]+)"),
         "semester": find(r"(FIRST|SECOND|THIRD|FOURTH)\s+SEMESTER"),
         "subject_grades": subject_grades,
-        "gpa": to_float(gpa.group(2)) if gpa else None,
-        "cgpa": to_float(cgpa.group(2)) if cgpa else None,
+        "gpa": gpa,
+        "cgpa": cgpa,
     }
+
 
 
 # -----------------------------
