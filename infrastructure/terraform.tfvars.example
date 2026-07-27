@@ -1,0 +1,7 @@
+# ============================================================
+#  Terraform Variables — Fill in before running `terraform apply`
+# ============================================================
+
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+repo_name  = "authdoc-repo"

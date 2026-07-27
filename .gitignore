@@ -4,7 +4,13 @@
 .DS_Store
 Thumbs.db
 .env
-.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Track .env.example templates
+!.env.example
 *.log
 logs/
 coverage/
@@ -92,6 +98,24 @@ C:/Users/*/AppData/Local/Temp/*
 ############################
 .gitconfig
 .gitignore.bak
+
+############################
+# Terraform
+############################
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
 ############################
 # Misc
